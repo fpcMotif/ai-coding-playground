@@ -1,0 +1,43 @@
+# Rust build artifacts
+/target/
+**/*.rlib
+**/*.rmeta
+**/*.so
+**/*.dylib
+**/*.dll
+Cargo.lock
+
+# Backup files
+**/*.rs.bk
+*.swp
+*.swo
+*~
+
+# IDE and editor files
+.vscode/
+.idea/
+*.iml
+.sublime-project
+.sublime-workspace
+*.code-workspace
+.DS_Store
+
+# OS files
+Thumbs.db
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# AI Tool directories
+.claude/
+.cursor/
+.copilot/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Temporary files
+*.tmp
+*.log

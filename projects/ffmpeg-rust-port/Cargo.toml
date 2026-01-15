@@ -1,0 +1,24 @@
+[package]
+name = "ffmpeg-rs"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+symphonia = { version = "0.5", features = ["all"] }
+hound = "3.5"
+rubato = "0.15"
+thiserror = "1.0"
+clap = { version = "4.4", features = ["derive"] }
+log = "0.4"
+env_logger = "0.11"
+
+[lib]
+name = "ffmpeg_rs"
+path = "src/lib.rs"
+
+[[bin]]
+name = "ffmpeg"
+path = "src/main.rs"
+
+[dev-dependencies]
+tempfile = "3.8"
