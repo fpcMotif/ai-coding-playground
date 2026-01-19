@@ -1,0 +1,61 @@
+{
+  "listen_addr": ":1935",
+  "http_addr": ":8080",
+  "upstreams": [
+    {
+      "url": "rtmp://upstream-a.example.com:1935/app/stream",
+      "weight": 2
+    },
+    {
+      "url": "rtmp://upstream-b.example.com:1935/app/stream",
+      "weight": 1
+    }
+  ],
+  "upstream_strategy": "round_robin",
+  "upstream_health_check": {
+    "enabled": true,
+    "interval_sec": 10,
+    "timeout_sec": 2
+  },
+  "idle_timeout": "30s",
+  "read_buffer": 65536,
+  "write_buffer": 65536,
+
+  "security": {
+    "auth_enabled": true,
+    "auth_tokens": [
+      "token-123-abc",
+      "token-456-def"
+    ],
+    "tls_enabled": false,
+    "tls_cert": "/etc/relay/certs/cert.pem",
+    "tls_key": "/etc/relay/certs/key.pem"
+  },
+
+  "rate_limit": {
+    "enabled": true,
+    "requests_per_sec": 100.0,
+    "burst": 10
+  },
+
+  "connection_limit": {
+    "max_total_connections": 1000,
+    "max_per_ip": 10
+  },
+
+  "circuit_breaker": {
+    "enabled": true,
+    "max_failures": 5,
+    "reset_timeout_sec": 30,
+    "success_threshold": 2
+  },
+
+  "retry": {
+    "enabled": true,
+    "max_attempts": 3,
+    "initial_delay_sec": 1,
+    "max_delay_sec": 30,
+    "multiplier": 2.0,
+    "jitter_fraction": 0.1
+  }
+}

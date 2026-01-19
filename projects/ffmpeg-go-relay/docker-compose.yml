@@ -1,0 +1,83 @@
+version: '3.8'
+
+services:
+  relay:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ffmpeg-go-relay
+    ports:
+      - "1935:1935"  # RTMP port
+      - "8080:8080"  # HTTP metrics/health port
+    volumes:
+      - ./config.json:/app/config.json:ro
+    environment:
+      - LOG_LEVEL=info
+    depends_on:
+      - prometheus
+    networks:
+      - relay-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O-", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: relay-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=7d'
+    networks:
+      - relay-network
+    restart: unless-stopped
+    depends_on:
+      - relay
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: relay-grafana
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana-storage:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_INSTALL_PLUGINS=grafana-piechart-panel
+      - GF_SERVER_ROOT_URL=http://localhost:3000
+    networks:
+      - relay-network
+    restart: unless-stopped
+    depends_on:
+      - prometheus
+
+  # Optional: Redis for distributed caching (future enhancement)
+  # redis:
+  #   image: redis:7-alpine
+  #   container_name: relay-redis
+  #   ports:
+  #     - "6379:6379"
+  #   networks:
+  #     - relay-network
+  #   restart: unless-stopped
+
+volumes:
+  prometheus-data:
+    driver: local
+  grafana-storage:
+    driver: local
+
+networks:
+  relay-network:
+    driver: bridge
