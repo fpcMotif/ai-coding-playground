@@ -68,6 +68,43 @@ func TestValidateTranscodeGOP(t *testing.T) {
 	}
 }
 
+func TestValidateTranscodeArgs(t *testing.T) {
+	cfg := Default()
+	cfg.Upstream = "rtmp://example.com/app/stream"
+	cfg.Transcode.Enabled = true
+
+	validArgs := []string{"ultrafast", "libx264", "aac", "my_preset-1.0"}
+	for _, arg := range validArgs {
+		cfg.Transcode.Preset = arg
+		cfg.Transcode.VideoCodec = arg
+		cfg.Transcode.AudioCodec = arg
+		if err := cfg.Validate(); err != nil {
+			t.Fatalf("expected arg %q to validate, got %v", arg, err)
+		}
+	}
+
+	invalidArgs := []string{"-preset", "valid -preset", "malformed;rm -rf /", "a b"}
+	for _, arg := range invalidArgs {
+		cfg.Transcode.Preset = arg
+		if err := cfg.Validate(); err == nil {
+			t.Fatalf("expected arg %q to fail validation", arg)
+		}
+		cfg.Transcode.Preset = "" // reset
+
+		cfg.Transcode.VideoCodec = arg
+		if err := cfg.Validate(); err == nil {
+			t.Fatalf("expected arg %q to fail validation", arg)
+		}
+		cfg.Transcode.VideoCodec = "" // reset
+
+		cfg.Transcode.AudioCodec = arg
+		if err := cfg.Validate(); err == nil {
+			t.Fatalf("expected arg %q to fail validation", arg)
+		}
+		cfg.Transcode.AudioCodec = "" // reset
+	}
+}
+
 func TestValidateTLSConfig(t *testing.T) {
 	cfg := Default()
 	cfg.Upstream = "rtmp://example.com/app/stream"
