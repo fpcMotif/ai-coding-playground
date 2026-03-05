@@ -18,19 +18,14 @@ impl Remix {
 
     /// Remix stereo to mono by averaging channels
     fn stereo_to_mono(input: &[f32]) -> Vec<f32> {
-        let mut output = Vec::new();
-        for i in (0..input.len()).step_by(2) {
-            if i + 1 < input.len() {
-                let avg = (input[i] + input[i + 1]) / 2.0;
-                output.push(avg);
-            }
-        }
-        output
+        input.chunks_exact(2)
+            .map(|chunk| (chunk[0] + chunk[1]) / 2.0)
+            .collect()
     }
 
     /// Remix mono to stereo by duplicating the channel
     fn mono_to_stereo(input: &[f32]) -> Vec<f32> {
-        let mut output = Vec::new();
+        let mut output = Vec::with_capacity(input.len() * 2);
         for &sample in input {
             output.push(sample);
             output.push(sample); // Duplicate to both channels
@@ -40,22 +35,16 @@ impl Remix {
 
     /// Extract left channel from stereo
     fn stereo_left(input: &[f32]) -> Vec<f32> {
-        let mut output = Vec::new();
-        for i in (0..input.len()).step_by(2) {
-            output.push(input[i]);
-        }
-        output
+        input.chunks(2)
+            .map(|chunk| chunk[0])
+            .collect()
     }
 
     /// Extract right channel from stereo
     fn stereo_right(input: &[f32]) -> Vec<f32> {
-        let mut output = Vec::new();
-        for i in (0..input.len()).step_by(2) {
-            if i + 1 < input.len() {
-                output.push(input[i + 1]);
-            }
-        }
-        output
+        input.chunks_exact(2)
+            .map(|chunk| chunk[1])
+            .collect()
     }
 }
 
@@ -83,15 +72,13 @@ impl super::Filter for Remix {
 
             // Quad to Stereo (average all channels)
             (Channels::Quad, Channels::Stereo) => {
-                let mut output = Vec::new();
+                let mut output = Vec::with_capacity(samples.len() / 2);
                 // Assuming quad is FLRR (Front-Left, Front-Right, Rear-Left, Rear-Right)
-                for i in (0..samples.len()).step_by(4) {
-                    if i + 3 < samples.len() {
-                        let left = (samples[i] + samples[i + 2]) / 2.0; // FL + RL
-                        let right = (samples[i + 1] + samples[i + 3]) / 2.0; // FR + RR
-                        output.push(left);
-                        output.push(right);
-                    }
+                for chunk in samples.chunks_exact(4) {
+                    let left = (chunk[0] + chunk[2]) / 2.0; // FL + RL
+                    let right = (chunk[1] + chunk[3]) / 2.0; // FR + RR
+                    output.push(left);
+                    output.push(right);
                 }
                 output
             }
