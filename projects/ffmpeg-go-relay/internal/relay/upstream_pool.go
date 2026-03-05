@@ -266,13 +266,19 @@ func (p *UpstreamPool) checkAll(ctx context.Context, log *logger.Logger, timeout
 	copy(endpoints, p.endpoints)
 	p.mu.RUnlock()
 
+	var wg sync.WaitGroup
 	for _, endpoint := range endpoints {
-		healthy, err := probeUpstream(ctx, endpoint.info, timeout)
-		p.updateHealth(endpoint, healthy, err)
-		if log != nil && err != nil {
-			log.Warn("upstream health check failed", "upstream", endpoint.url, "err", err)
-		}
+		wg.Add(1)
+		go func(ep *upstreamState) {
+			defer wg.Done()
+			healthy, err := probeUpstream(ctx, ep.info, timeout)
+			p.updateHealth(ep, healthy, err)
+			if log != nil && err != nil {
+				log.Warn("upstream health check failed", "upstream", ep.url, "err", err)
+			}
+		}(endpoint)
 	}
+	wg.Wait()
 }
 
 func (p *UpstreamPool) updateHealth(endpoint *upstreamState, healthy bool, err error) {
