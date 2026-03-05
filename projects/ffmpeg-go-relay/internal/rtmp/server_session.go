@@ -1,6 +1,7 @@
 package rtmp
 
 import (
+	"bufio"
 	"bytes"
 	"fmt"
 	"io"
@@ -10,12 +11,14 @@ import (
 type ServerSession struct {
 	cs *ChunkStream
 	w  io.Writer
+	bw *bufio.Writer
 }
 
 func NewServerSession(cs *ChunkStream, w io.Writer) *ServerSession {
 	return &ServerSession{
 		cs: cs,
 		w:  w,
+		bw: bufio.NewWriterSize(w, 4096),
 	}
 }
 
@@ -216,7 +219,7 @@ func (s *ServerSession) sendMessage(typeID uint8, payload []byte) error {
 	header[11] = 0
 
 	// Write Header
-	if _, err := s.w.Write(header); err != nil {
+	if _, err := s.bw.Write(header); err != nil {
 		return err
 	}
 
@@ -231,16 +234,16 @@ func (s *ServerSession) sendMessage(typeID uint8, payload []byte) error {
 		if written > 0 {
 			// Write continuation header (Fmt 3, CSID)
 			h := byte(0xC0 | byte(csid)) // Fmt 3 = 11xxxxxx
-			if _, err := s.w.Write([]byte{h}); err != nil {
+			if err := s.bw.WriteByte(h); err != nil {
 				return err
 			}
 		}
 
-		if _, err := s.w.Write(payload[written:end]); err != nil {
+		if _, err := s.bw.Write(payload[written:end]); err != nil {
 			return err
 		}
 		written = end
 	}
 
-	return nil
+	return s.bw.Flush()
 }
