@@ -60,7 +60,7 @@ impl Remix {
 }
 
 impl super::Filter for Remix {
-    fn process(&mut self, frame: &AudioFrame) -> AudioResult<AudioFrame> {
+    fn process(&mut self, frame: AudioFrame) -> AudioResult<AudioFrame> {
         if frame.channels() != self.input_channels {
             return Err(AudioError::InvalidChannels {
                 expected: self.input_channels.count(),
@@ -68,13 +68,15 @@ impl super::Filter for Remix {
             });
         }
 
+        if self.input_channels == self.output_channels {
+            // Pass through without allocating
+            return Ok(frame);
+        }
+
         let samples = frame.samples();
 
         // Handle common remixing operations
         let output_samples = match (self.input_channels, self.output_channels) {
-            // Pass through same channel count
-            (src, dst) if src == dst => samples.to_vec(),
-
             // Stereo to Mono
             (Channels::Stereo, Channels::Mono) => Self::stereo_to_mono(samples),
 

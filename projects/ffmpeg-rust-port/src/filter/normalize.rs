@@ -60,45 +60,37 @@ impl Normalize {
         (sum_squared / samples.len() as f32).sqrt()
     }
 
-    /// Apply gain to all samples
-    fn apply_gain(samples: &[f32], gain: f32) -> Vec<f32> {
-        samples.iter().map(|&s| (s * gain).clamp(-1.0, 1.0)).collect()
+    /// Apply gain to all samples in place
+    fn apply_gain_in_place(samples: &mut [f32], gain: f32) {
+        for s in samples.iter_mut() {
+            *s = (*s * gain).clamp(-1.0, 1.0);
+        }
     }
 }
 
 impl super::Filter for Normalize {
-    fn process(&mut self, frame: &AudioFrame) -> AudioResult<AudioFrame> {
-        let samples = frame.samples();
-
-        if samples.is_empty() {
-            return Ok(frame.clone());
+    fn process(&mut self, mut frame: AudioFrame) -> AudioResult<AudioFrame> {
+        if frame.samples().is_empty() {
+            return Ok(frame);
         }
 
         let current_level = if self.use_loudness {
-            Self::calculate_rms(samples)
+            Self::calculate_rms(frame.samples())
         } else {
-            Self::calculate_peak(samples)
+            Self::calculate_peak(frame.samples())
         };
 
         if current_level == 0.0 {
-            return Ok(frame.clone());
+            return Ok(frame);
         }
 
         // Calculate gain needed to reach target
         let gain = self.target_peak / current_level;
 
-        // Apply gain (with clipping to prevent distortion)
-        let normalized_samples = Self::apply_gain(samples, gain);
+        // Apply gain (with clipping to prevent distortion) in place
+        Self::apply_gain_in_place(frame.samples_mut(), gain);
 
-        // Create output frame
-        let output_frame = AudioFrame::new(
-            normalized_samples,
-            frame.sample_rate(),
-            frame.channels(),
-            frame.frame_number(),
-        )?;
-
-        Ok(output_frame)
+        Ok(frame)
     }
 }
 
@@ -121,7 +113,7 @@ mod tests {
             0,
         ).unwrap();
 
-        let result = normalizer.process(&frame).unwrap();
+        let result = normalizer.process(frame).unwrap();
 
         // Peak should now be 0.8
         let peak = Normalize::calculate_peak(result.samples());
@@ -140,7 +132,7 @@ mod tests {
             0,
         ).unwrap();
 
-        let result = normalizer.process(&frame).unwrap();
+        let result = normalizer.process(frame).unwrap();
 
         // Calculate the RMS of the original
         let original_rms = Normalize::calculate_rms(&samples);
@@ -163,7 +155,7 @@ mod tests {
         ).unwrap();
 
         // Should handle silence gracefully (no division by zero)
-        let result = normalizer.process(&frame).unwrap();
+        let result = normalizer.process(frame).unwrap();
         assert_eq!(result.samples(), &[0.0, 0.0, 0.0]);
     }
 }

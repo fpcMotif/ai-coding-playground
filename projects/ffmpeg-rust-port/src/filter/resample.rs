@@ -71,7 +71,7 @@ impl Resample {
 }
 
 impl super::Filter for Resample {
-    fn process(&mut self, frame: &AudioFrame) -> AudioResult<AudioFrame> {
+    fn process(&mut self, frame: AudioFrame) -> AudioResult<AudioFrame> {
         if frame.channels() != self.channels {
             return Err(AudioError::InvalidChannels {
                 expected: self.channels.count(),
@@ -86,8 +86,8 @@ impl super::Filter for Resample {
         }
 
         if self.input_rate == self.output_rate {
-            // No resampling needed
-            return Ok(frame.clone());
+            // No resampling needed, return frame directly avoiding clone
+            return Ok(frame);
         }
 
         let ratio = self.input_rate as f64 / self.output_rate as f64;
