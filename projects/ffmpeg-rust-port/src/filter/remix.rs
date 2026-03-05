@@ -18,7 +18,7 @@ impl Remix {
 
     /// Remix stereo to mono by averaging channels
     fn stereo_to_mono(input: &[f32]) -> Vec<f32> {
-        let mut output = Vec::new();
+        let mut output = Vec::with_capacity(input.len() / 2);
         for i in (0..input.len()).step_by(2) {
             if i + 1 < input.len() {
                 let avg = (input[i] + input[i + 1]) / 2.0;
@@ -30,7 +30,7 @@ impl Remix {
 
     /// Remix mono to stereo by duplicating the channel
     fn mono_to_stereo(input: &[f32]) -> Vec<f32> {
-        let mut output = Vec::new();
+        let mut output = Vec::with_capacity(input.len() * 2);
         for &sample in input {
             output.push(sample);
             output.push(sample); // Duplicate to both channels
@@ -40,7 +40,7 @@ impl Remix {
 
     /// Extract left channel from stereo
     fn stereo_left(input: &[f32]) -> Vec<f32> {
-        let mut output = Vec::new();
+        let mut output = Vec::with_capacity((input.len() + 1) / 2);
         for i in (0..input.len()).step_by(2) {
             output.push(input[i]);
         }
@@ -49,7 +49,7 @@ impl Remix {
 
     /// Extract right channel from stereo
     fn stereo_right(input: &[f32]) -> Vec<f32> {
-        let mut output = Vec::new();
+        let mut output = Vec::with_capacity(input.len() / 2);
         for i in (0..input.len()).step_by(2) {
             if i + 1 < input.len() {
                 output.push(input[i + 1]);
@@ -83,7 +83,7 @@ impl super::Filter for Remix {
 
             // Quad to Stereo (average all channels)
             (Channels::Quad, Channels::Stereo) => {
-                let mut output = Vec::new();
+                let mut output = Vec::with_capacity(samples.len() / 2);
                 // Assuming quad is FLRR (Front-Left, Front-Right, Rear-Left, Rear-Right)
                 for i in (0..samples.len()).step_by(4) {
                     if i + 3 < samples.len() {
