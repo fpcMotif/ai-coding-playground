@@ -110,7 +110,7 @@ impl AudioFrame {
         }
 
         let expected_samples = (samples.len() as u32 / channels.count()) as usize;
-        if samples.len() % channels.count() as usize != 0 {
+        if !samples.len().is_multiple_of(channels.count() as usize) {
             return Err(AudioError::BufferError(
                 "Sample count not divisible by channel count".to_string(),
             ));

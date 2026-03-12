@@ -1,7 +1,6 @@
 use crate::core::{AudioFrame, Channels};
 use crate::error::{AudioError, AudioResult};
 use std::fs::File;
-use std::ops::Deref;
 use std::path::Path;
 use symphonia::core::formats::FormatOptions;
 use symphonia::core::io::MediaSourceStream;
@@ -32,21 +31,17 @@ impl SymphoniaDecoder {
         let path = path.as_ref();
 
         // Open the file
-        let file = Box::new(
-            File::open(path)
-                .map_err(|e| AudioError::Io(e))?,
-        );
+        let file = Box::new(File::open(path).map_err(AudioError::Io)?);
 
         // Create media source stream
         let mss = MediaSourceStream::new(file, Default::default());
 
         // Probe the file to detect format
         let mut hint = Hint::new();
-        if let Some(ext) = path.extension() {
-            if let Some(ext_str) = ext.to_str() {
+        if let Some(ext) = path.extension()
+            && let Some(ext_str) = ext.to_str() {
                 hint.with_extension(ext_str);
             }
-        }
 
         let format_opts = FormatOptions::default();
         let metadata_opts = MetadataOptions::default();
@@ -77,7 +72,9 @@ impl SymphoniaDecoder {
         let channels = if let Some(channels) = codec_params.channels {
             Channels::from_count(channels.count() as u32)?
         } else {
-            return Err(AudioError::InvalidMetadata("Unknown channel count".to_string()));
+            return Err(AudioError::InvalidMetadata(
+                "Unknown channel count".to_string(),
+            ));
         };
 
         // Create decoder
@@ -153,7 +150,11 @@ impl super::Decoder for SymphoniaDecoder {
                 symphonia::core::audio::AudioBufferRef::S24(buf) => buf.as_ref().capacity(),
                 symphonia::core::audio::AudioBufferRef::S8(buf) => buf.as_ref().capacity(),
                 symphonia::core::audio::AudioBufferRef::F64(buf) => buf.as_ref().capacity(),
-                _ => return Err(AudioError::UnsupportedFormat("Unsupported audio sample format".to_string())),
+                _ => {
+                    return Err(AudioError::UnsupportedFormat(
+                        "Unsupported audio sample format".to_string(),
+                    ));
+                }
             };
 
             // For now, create silent samples as placeholder
@@ -166,12 +167,8 @@ impl super::Decoder for SymphoniaDecoder {
                 continue;
             }
 
-            let frame = AudioFrame::new(
-                samples,
-                self.sample_rate,
-                self.channels,
-                self.frame_count,
-            )?;
+            let frame =
+                AudioFrame::new(samples, self.sample_rate, self.channels, self.frame_count)?;
 
             self.frame_count += 1;
 

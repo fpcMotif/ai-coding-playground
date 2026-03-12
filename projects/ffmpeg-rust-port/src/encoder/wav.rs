@@ -1,6 +1,6 @@
 use crate::core::{AudioFrame, Channels};
 use crate::error::{AudioError, AudioResult};
-use hound::{WavWriter, WavSpec};
+use hound::{WavSpec, WavWriter};
 use std::path::Path;
 
 /// WAV audio encoder
@@ -12,11 +12,7 @@ pub struct WavEncoder {
 
 impl WavEncoder {
     /// Create a new WAV encoder to file
-    pub fn new<P: AsRef<Path>>(
-        path: P,
-        sample_rate: u32,
-        channels: Channels,
-    ) -> AudioResult<Self> {
+    pub fn new<P: AsRef<Path>>(path: P, sample_rate: u32, channels: Channels) -> AudioResult<Self> {
         let spec = WavSpec {
             channels: channels.count() as u16,
             sample_rate,
@@ -24,8 +20,8 @@ impl WavEncoder {
             sample_format: hound::SampleFormat::Float,
         };
 
-        let writer = WavWriter::create(path, spec)
-            .map_err(|e| AudioError::EncodeError(e.to_string()))?;
+        let writer =
+            WavWriter::create(path, spec).map_err(|e| AudioError::EncodeError(e.to_string()))?;
 
         Ok(WavEncoder {
             writer: Some(writer),
@@ -65,7 +61,9 @@ impl super::Encoder for WavEncoder {
             });
         }
 
-        let writer = self.writer.as_mut()
+        let writer = self
+            .writer
+            .as_mut()
             .ok_or_else(|| AudioError::ProcessingError("Encoder already finalized".to_string()))?;
 
         // Write each sample to the WAV file

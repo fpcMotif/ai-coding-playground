@@ -40,11 +40,7 @@ impl Remix {
 
     /// Extract left channel from stereo
     fn stereo_left(input: &[f32]) -> Vec<f32> {
-        let mut output = Vec::new();
-        for i in (0..input.len()).step_by(2) {
-            output.push(input[i]);
-        }
-        output
+        input.chunks_exact(2).map(|chunk| chunk[0]).collect()
     }
 
     /// Extract right channel from stereo
@@ -104,7 +100,7 @@ impl super::Filter for Remix {
                     "Remix from {} to {} not yet supported",
                     self.input_channels.name(),
                     self.output_channels.name()
-                )))
+                )));
             }
         };
 

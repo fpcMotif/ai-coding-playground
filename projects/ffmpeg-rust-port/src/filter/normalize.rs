@@ -62,7 +62,10 @@ impl Normalize {
 
     /// Apply gain to all samples
     fn apply_gain(samples: &[f32], gain: f32) -> Vec<f32> {
-        samples.iter().map(|&s| (s * gain).clamp(-1.0, 1.0)).collect()
+        samples
+            .iter()
+            .map(|&s| (s * gain).clamp(-1.0, 1.0))
+            .collect()
     }
 }
 
@@ -114,12 +117,7 @@ mod tests {
 
         // Create a frame with peak of 0.5
         let samples = vec![0.0, 0.25, 0.5, -0.3];
-        let frame = AudioFrame::new(
-            samples,
-            44100,
-            crate::core::Channels::Mono,
-            0,
-        ).unwrap();
+        let frame = AudioFrame::new(samples, 44100, crate::core::Channels::Mono, 0).unwrap();
 
         let result = normalizer.process(&frame).unwrap();
 
@@ -133,12 +131,8 @@ mod tests {
         let mut normalizer = Normalize::loudness(0.5).unwrap();
 
         let samples = vec![0.1, 0.2, -0.15, 0.1];
-        let frame = AudioFrame::new(
-            samples.clone(),
-            44100,
-            crate::core::Channels::Mono,
-            0,
-        ).unwrap();
+        let frame =
+            AudioFrame::new(samples.clone(), 44100, crate::core::Channels::Mono, 0).unwrap();
 
         let result = normalizer.process(&frame).unwrap();
 
@@ -155,12 +149,8 @@ mod tests {
         let mut normalizer = Normalize::peak(0.8).unwrap();
 
         let samples = vec![0.0, 0.0, 0.0];
-        let frame = AudioFrame::new(
-            samples.clone(),
-            44100,
-            crate::core::Channels::Mono,
-            0,
-        ).unwrap();
+        let frame =
+            AudioFrame::new(samples.clone(), 44100, crate::core::Channels::Mono, 0).unwrap();
 
         // Should handle silence gracefully (no division by zero)
         let result = normalizer.process(&frame).unwrap();
