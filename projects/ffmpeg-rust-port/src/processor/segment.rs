@@ -49,7 +49,8 @@ impl Segment {
 
         // Split the frame into segments of the specified duration
         for segment_start in (0..samples_per_channel).step_by(samples_per_segment) {
-            let segment_end = std::cmp::min(segment_start + samples_per_segment, samples_per_channel);
+            let segment_end =
+                std::cmp::min(segment_start + samples_per_segment, samples_per_channel);
             let samples_in_segment = segment_end - segment_start;
 
             if samples_in_segment == 0 {

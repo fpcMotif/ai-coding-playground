@@ -58,7 +58,8 @@ impl Resample {
             if input_idx + 1 < input.len() {
                 // Linear interpolation between two samples
                 let frac = input_pos - input_idx as f64;
-                let sample = (input[input_idx] as f64 * (1.0 - frac) + input[input_idx + 1] as f64 * frac) as f32;
+                let sample = (input[input_idx] as f64 * (1.0 - frac)
+                    + input[input_idx + 1] as f64 * frac) as f32;
                 output.push(sample.clamp(-1.0, 1.0));
             } else if input_idx < input.len() {
                 // Edge case: last sample

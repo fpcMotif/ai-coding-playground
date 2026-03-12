@@ -32,10 +32,7 @@ impl SymphoniaDecoder {
         let path = path.as_ref();
 
         // Open the file
-        let file = Box::new(
-            File::open(path)
-                .map_err(|e| AudioError::Io(e))?,
-        );
+        let file = Box::new(File::open(path).map_err(|e| AudioError::Io(e))?);
 
         // Create media source stream
         let mss = MediaSourceStream::new(file, Default::default());
@@ -77,7 +74,9 @@ impl SymphoniaDecoder {
         let channels = if let Some(channels) = codec_params.channels {
             Channels::from_count(channels.count() as u32)?
         } else {
-            return Err(AudioError::InvalidMetadata("Unknown channel count".to_string()));
+            return Err(AudioError::InvalidMetadata(
+                "Unknown channel count".to_string(),
+            ));
         };
 
         // Create decoder
@@ -153,7 +152,11 @@ impl super::Decoder for SymphoniaDecoder {
                 symphonia::core::audio::AudioBufferRef::S24(buf) => buf.as_ref().capacity(),
                 symphonia::core::audio::AudioBufferRef::S8(buf) => buf.as_ref().capacity(),
                 symphonia::core::audio::AudioBufferRef::F64(buf) => buf.as_ref().capacity(),
-                _ => return Err(AudioError::UnsupportedFormat("Unsupported audio sample format".to_string())),
+                _ => {
+                    return Err(AudioError::UnsupportedFormat(
+                        "Unsupported audio sample format".to_string(),
+                    ));
+                }
             };
 
             // For now, create silent samples as placeholder
@@ -166,12 +169,8 @@ impl super::Decoder for SymphoniaDecoder {
                 continue;
             }
 
-            let frame = AudioFrame::new(
-                samples,
-                self.sample_rate,
-                self.channels,
-                self.frame_count,
-            )?;
+            let frame =
+                AudioFrame::new(samples, self.sample_rate, self.channels, self.frame_count)?;
 
             self.frame_count += 1;
 
