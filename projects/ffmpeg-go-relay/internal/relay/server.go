@@ -26,13 +26,12 @@ import (
 )
 
 // generateRequestID creates a unique request ID for correlation
-func generateRequestID() string {
+func generateRequestID() (string, error) {
 	b := make([]byte, 16)
 	if _, err := rand.Read(b); err != nil {
-		// Fallback to timestamp-based ID if crypto/rand fails
-		return fmt.Sprintf("req-%d", time.Now().UnixNano())
+		return "", fmt.Errorf("failed to generate secure request ID: %w", err)
 	}
-	return hex.EncodeToString(b)
+	return hex.EncodeToString(b), nil
 }
 
 // ConnectionInfo holds information about an active connection
@@ -177,7 +176,10 @@ func (s *Server) handle(ctx context.Context, downstream net.Conn) (err error) {
 	defer downstream.Close()
 
 	// Generate request correlation ID for this session
-	requestID := generateRequestID()
+	requestID, err := generateRequestID()
+	if err != nil {
+		return fmt.Errorf("failed to generate request ID: %w", err)
+	}
 	log := s.Log.With("request_id", requestID, "client", downstream.RemoteAddr().String())
 
 	start := time.Now()
