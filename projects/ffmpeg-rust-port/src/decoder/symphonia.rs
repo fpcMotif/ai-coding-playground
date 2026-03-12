@@ -142,9 +142,6 @@ impl super::Decoder for SymphoniaDecoder {
                 Err(e) => return Err(AudioError::DecodeError(e.to_string())),
             };
 
-            // Convert Symphonia's AudioBuffer to our f32 samples
-            let mut samples = Vec::new();
-
             // Determine the number of samples by getting the number of frames
             let num_samples = match &audio_buf {
                 symphonia::core::audio::AudioBufferRef::F32(buf) => buf.as_ref().capacity(),
@@ -158,9 +155,7 @@ impl super::Decoder for SymphoniaDecoder {
 
             // For now, create silent samples as placeholder
             // TODO: Implement proper sample conversion from Symphonia buffers
-            for _ in 0..num_samples {
-                samples.push(0.0);
-            }
+            let samples = vec![0.0; num_samples];
 
             if samples.is_empty() {
                 continue;
