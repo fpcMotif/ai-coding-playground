@@ -49,13 +49,7 @@ impl Remix {
 
     /// Extract right channel from stereo
     fn stereo_right(input: &[f32]) -> Vec<f32> {
-        let mut output = Vec::new();
-        for i in (0..input.len()).step_by(2) {
-            if i + 1 < input.len() {
-                output.push(input[i + 1]);
-            }
-        }
-        output
+        input.chunks_exact(2).map(|chunk| chunk[1]).collect()
     }
 }
 
@@ -104,7 +98,7 @@ impl super::Filter for Remix {
                     "Remix from {} to {} not yet supported",
                     self.input_channels.name(),
                     self.output_channels.name()
-                )))
+                )));
             }
         };
 
@@ -148,5 +142,15 @@ mod tests {
         assert_eq!(output[1], 0.5);
         assert_eq!(output[2], 0.8);
         assert_eq!(output[3], 0.8);
+    }
+
+    #[test]
+    fn test_remix_stereo_right() {
+        let input = vec![0.1, 0.2, 0.3, 0.4, 0.5];
+        let output = Remix::stereo_right(&input);
+
+        assert_eq!(output.len(), 2);
+        assert_eq!(output[0], 0.2);
+        assert_eq!(output[1], 0.4);
     }
 }
