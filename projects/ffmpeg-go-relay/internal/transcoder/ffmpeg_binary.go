@@ -6,11 +6,14 @@ import (
 	"io"
 	"os"
 	"os/exec"
+	"regexp"
 	"strings"
 
 	"ffmpeg-go-relay/internal/config"
 	"ffmpeg-go-relay/internal/logger"
 )
+
+var validParamRegex = regexp.MustCompile(`^[a-zA-Z0-9_][a-zA-Z0-9_.-]*$`)
 
 type ffmpegBackend struct {
 	cmd   *exec.Cmd
@@ -18,16 +21,19 @@ type ffmpegBackend struct {
 }
 
 func newFFmpegBackend(ctx context.Context, cfg config.TranscodeConfig, upstream string, log *logger.Logger) (Backend, error) {
-	if _, err := exec.LookPath("ffmpeg"); err != nil {
-		return nil, fmt.Errorf("ffmpeg binary not found: %w", err)
-	}
 
 	vCodec := "libx264"
 	if cfg.VideoCodec != "" {
+		if !validParamRegex.MatchString(cfg.VideoCodec) {
+			return nil, fmt.Errorf("invalid video codec: %s", cfg.VideoCodec)
+		}
 		vCodec = cfg.VideoCodec
 	}
 	aCodec := "aac"
 	if cfg.AudioCodec != "" {
+		if !validParamRegex.MatchString(cfg.AudioCodec) {
+			return nil, fmt.Errorf("invalid audio codec: %s", cfg.AudioCodec)
+		}
 		aCodec = cfg.AudioCodec
 	}
 
@@ -39,12 +45,18 @@ func newFFmpegBackend(ctx context.Context, cfg config.TranscodeConfig, upstream 
 	}
 
 	if cfg.Preset != "" {
+		if !validParamRegex.MatchString(cfg.Preset) {
+			return nil, fmt.Errorf("invalid preset: %s", cfg.Preset)
+		}
 		args = append(args, "-preset", cfg.Preset)
 	}
 	if cfg.CRF > 0 {
 		args = append(args, "-crf", fmt.Sprintf("%d", cfg.CRF))
 	}
 	if cfg.GOP != "" {
+		if !validParamRegex.MatchString(cfg.GOP) {
+			return nil, fmt.Errorf("invalid gop: %s", cfg.GOP)
+		}
 		gopFlags, err := gopArgs(cfg.GOP)
 		if err != nil {
 			return nil, err
@@ -53,6 +65,10 @@ func newFFmpegBackend(ctx context.Context, cfg config.TranscodeConfig, upstream 
 	}
 
 	args = append(args, "-f", "flv", upstream)
+
+	if _, err := exec.LookPath("ffmpeg"); err != nil {
+		return nil, fmt.Errorf("ffmpeg binary not found: %w", err)
+	}
 
 	log.Info("starting ffmpeg", "args", strings.Join(args, " "))
 
