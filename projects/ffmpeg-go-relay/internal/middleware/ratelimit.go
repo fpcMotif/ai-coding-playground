@@ -10,13 +10,13 @@ import (
 
 // RateLimiter implements per-IP rate limiting using token bucket algorithm.
 type RateLimiter struct {
-	mu        sync.Mutex
-	limiters  map[string]*rate.Limiter
-	accessed  map[string]time.Time // Track last access time for cleanup
-	reqPerSec float64
-	burst     int
+	mu            sync.Mutex
+	limiters      map[string]*rate.Limiter
+	accessed      map[string]time.Time // Track last access time for cleanup
+	reqPerSec     float64
+	burst         int
 	cleanupTicker *time.Ticker
-	done      chan struct{}
+	done          chan struct{}
 }
 
 // NewRateLimiter creates a new rate limiter.
@@ -110,8 +110,8 @@ func (r *RateLimiter) Stats() map[string]interface{} {
 	defer r.mu.Unlock()
 
 	return map[string]interface{}{
-		"active_ips":     len(r.limiters),
+		"active_ips":       len(r.limiters),
 		"requests_per_sec": r.reqPerSec,
-		"burst_size":     r.burst,
+		"burst_size":       r.burst,
 	}
 }

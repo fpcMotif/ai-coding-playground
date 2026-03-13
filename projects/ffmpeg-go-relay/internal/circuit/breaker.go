@@ -11,21 +11,21 @@ import (
 type State int
 
 const (
-	Closed State = iota // Normal operation
-	Open                // Failing, reject requests
-	HalfOpen            // Testing if service recovered
+	Closed   State = iota // Normal operation
+	Open                  // Failing, reject requests
+	HalfOpen              // Testing if service recovered
 )
 
 // Breaker implements a circuit breaker pattern
 type Breaker struct {
-	mu             sync.RWMutex
-	state          State
-	failures       int32
-	successCount   int32
-	lastFailTime   time.Time
-	maxFailures    int32
-	resetTimeout   time.Duration
-	successThresh  int32 // Successes needed in half-open to close
+	mu            sync.RWMutex
+	state         State
+	failures      int32
+	successCount  int32
+	lastFailTime  time.Time
+	maxFailures   int32
+	resetTimeout  time.Duration
+	successThresh int32 // Successes needed in half-open to close
 }
 
 // New creates a new circuit breaker
@@ -145,9 +145,9 @@ func (b *Breaker) Stats() map[string]interface{} {
 	}
 
 	return map[string]interface{}{
-		"state":      state,
-		"failures":   atomic.LoadInt32(&b.failures),
-		"successes":  atomic.LoadInt32(&b.successCount),
-		"last_fail":  b.lastFailTime.Unix(),
+		"state":     state,
+		"failures":  atomic.LoadInt32(&b.failures),
+		"successes": atomic.LoadInt32(&b.successCount),
+		"last_fail": b.lastFailTime.Unix(),
 	}
 }

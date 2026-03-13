@@ -190,7 +190,7 @@ func TestParseArgs(t *testing.T) {
 		{"single pair", []any{"key", "value"}, 1},
 		{"multiple pairs", []any{"k1", "v1", "k2", "v2", "k3", "v3"}, 3},
 		{"odd number", []any{"k1", "v1", "k2"}, 1}, // Last unpaired should be skipped
-		{"non-string key", []any{123, "value"}, 0},  // Non-string keys are skipped
+		{"non-string key", []any{123, "value"}, 0}, // Non-string keys are skipped
 	}
 
 	for _, tt := range tests {

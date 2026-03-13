@@ -8,11 +8,11 @@ import (
 
 // ConnectionLimiter enforces connection limits (global and per-IP).
 type ConnectionLimiter struct {
-	mu              sync.RWMutex
-	activePerIP     map[string]*atomic.Int64
-	activeTotal     atomic.Int64
-	maxTotal        int64
-	maxPerIP        int64
+	mu          sync.RWMutex
+	activePerIP map[string]*atomic.Int64
+	activeTotal atomic.Int64
+	maxTotal    int64
+	maxPerIP    int64
 }
 
 // NewConnectionLimiter creates a new connection limiter.
@@ -131,10 +131,10 @@ func (c *ConnectionLimiter) Stats() map[string]interface{} {
 	total, perIP := c.GetActiveConnections()
 
 	return map[string]interface{}{
-		"active_total":    total,
-		"active_per_ip":   perIP,
-		"max_total":       c.maxTotal,
-		"max_per_ip":      c.maxPerIP,
-		"unique_ips":      len(perIP),
+		"active_total":  total,
+		"active_per_ip": perIP,
+		"max_total":     c.maxTotal,
+		"max_per_ip":    c.maxPerIP,
+		"unique_ips":    len(perIP),
 	}
 }

@@ -12,14 +12,14 @@ const (
 	FrameInfoCommand     = 5
 
 	// Video Codec IDs
-	VideoJPEG    = 1
-	VideoSorenson = 2
-	VideoScreen   = 3
-	VideoOn2VP6   = 4
+	VideoJPEG        = 1
+	VideoSorenson    = 2
+	VideoScreen      = 3
+	VideoOn2VP6      = 4
 	VideoOn2VP6Alpha = 5
-	VideoScreenV2 = 6
-	VideoAVC      = 7 // H.264
-	VideoHEVC     = 12 // H.265 (Enhanced RTMP)
+	VideoScreenV2    = 6
+	VideoAVC         = 7  // H.264
+	VideoHEVC        = 12 // H.265 (Enhanced RTMP)
 
 	// AVC Packet Types
 	AVCPacketSequenceHeader = 0
@@ -28,15 +28,15 @@ const (
 
 	// Audio Formats
 	AudioLinearPCMPlatform = 0
-	AudioADPCM            = 1
-	AudioMP3              = 2
-	AudioLinearPCMLittle  = 3
-	AudioNellymoser16k    = 4
-	AudioNellymoser8k     = 5
-	AudioNellymoser       = 6
-	AudioAAC              = 10
-	AudioSpeex            = 11
-	AudioMP38k            = 14
+	AudioADPCM             = 1
+	AudioMP3               = 2
+	AudioLinearPCMLittle   = 3
+	AudioNellymoser16k     = 4
+	AudioNellymoser8k      = 5
+	AudioNellymoser        = 6
+	AudioAAC               = 10
+	AudioSpeex             = 11
+	AudioMP38k             = 14
 )
 
 // VideoHeader represents the parsed FLV Video Tag Header
@@ -49,10 +49,10 @@ type VideoHeader struct {
 
 // AudioHeader represents the parsed FLV Audio Tag Header
 type AudioHeader struct {
-	Format      uint8
-	SampleRate  int
-	SampleSize  uint8
-	Stereo      bool
+	Format        uint8
+	SampleRate    int
+	SampleSize    uint8
+	Stereo        bool
 	AACPacketType uint8 // Only if Format == AudioAAC
 }
 
@@ -76,7 +76,7 @@ func ParseVideoHeader(payload []byte) (*VideoHeader, error) {
 			return nil, fmt.Errorf("short avc payload")
 		}
 		h.AVCPacketType = payload[1]
-		
+
 		if len(payload) >= 5 {
 			// Composition Time (CTS) is 24-bit big endian
 			cts := int32(uint32(payload[2])<<16 | uint32(payload[3])<<8 | uint32(payload[4]))

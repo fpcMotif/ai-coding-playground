@@ -7,8 +7,8 @@ import (
 
 // FLV Tag Types
 const (
-	TagTypeAudio = 8
-	TagTypeVideo = 9
+	TagTypeAudio  = 8
+	TagTypeVideo  = 9
 	TagTypeScript = 18
 )
 
@@ -18,7 +18,7 @@ func WriteFLVHeader(w io.Writer, hasAudio, hasVideo bool) error {
 	// Version 1
 	// Flags (Audio=4, Video=1)
 	// HeaderSize 9
-	
+
 	flags := uint8(0)
 	if hasAudio {
 		flags |= 0x04
@@ -43,7 +43,7 @@ func WriteFLVHeader(w io.Writer, hasAudio, hasVideo bool) error {
 func MessageToFLVTag(w io.Writer, msg *Message) error {
 	// Only Audio, Video, and Scripts (AMF0/AMF3) are valid FLV tags
 	// Protocol control messages (ChunkSize, Ack, etc.) must NOT be written to FLV
-	
+
 	tagType := msg.Header.TypeID
 	if tagType == TypeAMF0Command || tagType == TypeAMF20Command {
 		tagType = TagTypeScript
@@ -62,18 +62,18 @@ func MessageToFLVTag(w io.Writer, msg *Message) error {
 	// Timestamp (3)
 	// TimestampExtended (1)
 	// StreamID (3) - Always 0 in FLV files
-	
+
 	buf := make([]byte, 11)
 	buf[0] = tagType
 	buf[1] = byte(dataSize >> 16)
 	buf[2] = byte(dataSize >> 8)
 	buf[3] = byte(dataSize)
-	
+
 	buf[4] = byte(timestamp >> 16)
 	buf[5] = byte(timestamp >> 8)
 	buf[6] = byte(timestamp)
 	buf[7] = byte(timestamp >> 24) // Extended byte comes at the end of the 3-byte timestamp
-	
+
 	buf[8] = 0
 	buf[9] = 0
 	buf[10] = 0
