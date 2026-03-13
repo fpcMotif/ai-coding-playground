@@ -68,7 +68,7 @@ func encodeObject(w io.Writer, m map[string]interface{}) error {
 	if _, err := w.Write([]byte{MarkerObject}); err != nil {
 		return err
 	}
-	
+
 	// Sort keys for deterministic output (optional but good)
 	keys := make([]string, 0, len(m))
 	for k := range m {
@@ -85,7 +85,7 @@ func encodeObject(w io.Writer, m map[string]interface{}) error {
 		if _, err := w.Write([]byte(k)); err != nil {
 			return err
 		}
-		
+
 		// Write value
 		if err := encodeValue(w, m[k]); err != nil {
 			return err

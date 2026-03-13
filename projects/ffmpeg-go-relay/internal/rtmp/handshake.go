@@ -47,7 +47,7 @@ func ServerHandshake(rw io.ReadWriter, opts *HandshakeOptions) error {
 	// Detect Complex vs Simple
 	// In Simple, bytes 4-8 are zero.
 	// In Complex, we try to validate schema 0 or 1 digest.
-	
+
 	// Try Scheme 0 (Digest at ~8)
 	// Try Scheme 1 (Digest at ~772)
 	// For simplicity, if simple handshake validation fails (zeros check), we treat as complex?
@@ -61,7 +61,7 @@ func ServerHandshake(rw io.ReadWriter, opts *HandshakeOptions) error {
 	// Check for Simple (heuristic: 4-8 are 0) - Only some clients obey this.
 	// ffmpeg often sends 0.
 	isSimple := c1[4] == 0 && c1[5] == 0 && c1[6] == 0 && c1[7] == 0
-	
+
 	if !isSimple {
 		// Try Scheme 1 (Digest at 772+)
 		scheme = 1
@@ -98,7 +98,7 @@ func validateDigest(packet []byte, scheme int, key []byte) ([]byte, bool) {
 
 	// Calculate expected digest
 	digest := calcDigest(packet, key, offset)
-	
+
 	// Compare with packet digest
 	if bytes.Equal(digest, packet[offset:offset+32]) {
 		return digest, true
@@ -117,8 +117,8 @@ func complexServerResponse(rw io.ReadWriter, c1 []byte, scheme int, c1Digest []b
 	// Time
 	binary.BigEndian.PutUint32(s1[0:4], nowFn())
 	// Version (0x01000504 for FMS)
-	copy(s1[4:8], []byte{0x01, 0x00, 0x05, 0x04}) 
-	
+	copy(s1[4:8], []byte{0x01, 0x00, 0x05, 0x04})
+
 	// Random filler
 	if _, err := io.ReadFull(randReader, s1[8:]); err != nil {
 		return err
@@ -133,7 +133,7 @@ func complexServerResponse(rw io.ReadWriter, c1 []byte, scheme int, c1Digest []b
 		offset = getDigestOffset1(s1)
 		offset = (offset % 728) + 776
 	}
-	
+
 	digestS1 := calcDigest(s1, GenuineFMSKey, offset)
 	copy(s1[offset:], digestS1)
 
@@ -147,11 +147,11 @@ func complexServerResponse(rw io.ReadWriter, c1 []byte, scheme int, c1Digest []b
 	if _, err := io.ReadFull(randReader, s2); err != nil {
 		return err
 	}
-	
+
 	// Digest of C1 digest
 	tempKey := calcHMAC(GenuineFMSKey, c1Digest)
 	digestS2 := calcHMAC(tempKey, s2[:len(s2)-32])
-	
+
 	// Put digest at the end
 	copy(s2[len(s2)-32:], digestS2)
 

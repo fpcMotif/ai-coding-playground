@@ -445,10 +445,19 @@ func (s *Server) handleTranscode(ctx context.Context, downstream net.Conn, log *
 	log.Info("transcode session started", "stream", streamName)
 
 	// 2. Start FFmpeg
-	// If upstream ends with /, append streamName
-	upstreamURL := upstream
-	if strings.HasSuffix(upstreamURL, "/") {
-		upstreamURL += streamName
+	var upstreamURL string
+	if !strings.HasSuffix(upstream, "/") {
+		if streamName != "" {
+			upstreamURL = upstream + "/" + streamName
+		} else {
+			upstreamURL = upstream + "/"
+		}
+	} else {
+		if streamName != "" {
+			upstreamURL = upstream + streamName
+		} else {
+			upstreamURL = upstream
+		}
 	}
 
 	tr, err := transcoder.New(ctx, s.Transcode, upstreamURL, log)

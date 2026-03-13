@@ -29,11 +29,11 @@ const (
 )
 
 var (
-	ErrInvalidMarker   = errors.New("amf: invalid marker")
-	ErrEndObject       = errors.New("amf: end of object")
-	ErrValueLimit      = errors.New("amf: value limit exceeded")
-	ErrStringTooLong   = errors.New("amf: string too long")
-	ErrObjectKeyLimit  = errors.New("amf: object key limit exceeded")
+	ErrInvalidMarker  = errors.New("amf: invalid marker")
+	ErrEndObject      = errors.New("amf: end of object")
+	ErrValueLimit     = errors.New("amf: value limit exceeded")
+	ErrStringTooLong  = errors.New("amf: string too long")
+	ErrObjectKeyLimit = errors.New("amf: object key limit exceeded")
 )
 
 // DecodeAMF0 decodes a sequence of AMF0 values from the reader
