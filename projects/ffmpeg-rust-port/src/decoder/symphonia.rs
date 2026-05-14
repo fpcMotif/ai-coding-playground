@@ -1,8 +1,8 @@
 use crate::core::{AudioFrame, Channels};
 use crate::error::{AudioError, AudioResult};
 use std::fs::File;
-use std::ops::Deref;
 use std::path::Path;
+use symphonia::core::audio::SampleBuffer;
 use symphonia::core::formats::FormatOptions;
 use symphonia::core::io::MediaSourceStream;
 use symphonia::core::meta::MetadataOptions;
@@ -24,6 +24,8 @@ pub struct SymphoniaDecoder {
     finished: bool,
     /// Current decoder state
     decoder: Box<dyn symphonia::core::codecs::Decoder>,
+    /// Buffer for decoded samples
+    sample_buf: Option<SampleBuffer<f32>>,
 }
 
 impl SymphoniaDecoder {
@@ -93,6 +95,7 @@ impl SymphoniaDecoder {
             frame_count: 0,
             finished: false,
             decoder,
+            sample_buf: None,
         })
     }
 
@@ -143,39 +146,31 @@ impl super::Decoder for SymphoniaDecoder {
             };
 
             // Convert Symphonia's AudioBuffer to our f32 samples
-            let mut samples = Vec::new();
-
-            // Determine the number of samples by getting the number of frames
-            let num_samples = match &audio_buf {
-                symphonia::core::audio::AudioBufferRef::F32(buf) => buf.as_ref().capacity(),
-                symphonia::core::audio::AudioBufferRef::S32(buf) => buf.as_ref().capacity(),
-                symphonia::core::audio::AudioBufferRef::S16(buf) => buf.as_ref().capacity(),
-                symphonia::core::audio::AudioBufferRef::S24(buf) => buf.as_ref().capacity(),
-                symphonia::core::audio::AudioBufferRef::S8(buf) => buf.as_ref().capacity(),
-                symphonia::core::audio::AudioBufferRef::F64(buf) => buf.as_ref().capacity(),
-                _ => return Err(AudioError::UnsupportedFormat("Unsupported audio sample format".to_string())),
-            };
-
-            // For now, create silent samples as placeholder
-            // TODO: Implement proper sample conversion from Symphonia buffers
-            for _ in 0..num_samples {
-                samples.push(0.0);
+            if self.sample_buf.is_none() {
+                let spec = *audio_buf.spec();
+                let duration = audio_buf.capacity() as u64;
+                self.sample_buf = Some(SampleBuffer::<f32>::new(duration, spec));
             }
 
-            if samples.is_empty() {
-                continue;
+            if let Some(buf) = &mut self.sample_buf {
+                buf.copy_interleaved_ref(audio_buf);
+                let samples: Vec<f32> = buf.samples().to_vec();
+
+                if samples.is_empty() {
+                    continue;
+                }
+
+                let frame = AudioFrame::new(
+                    samples,
+                    self.sample_rate,
+                    self.channels,
+                    self.frame_count,
+                )?;
+
+                self.frame_count += 1;
+
+                return Ok(Some(frame));
             }
-
-            let frame = AudioFrame::new(
-                samples,
-                self.sample_rate,
-                self.channels,
-                self.frame_count,
-            )?;
-
-            self.frame_count += 1;
-
-            return Ok(Some(frame));
         }
     }
 
