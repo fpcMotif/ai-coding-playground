@@ -2,8 +2,9 @@ package retry
 
 import (
 	"context"
+	"crypto/rand"
 	"fmt"
-	"math/rand"
+	"math/big"
 	"time"
 )
 
@@ -112,7 +113,16 @@ func DoWithJitter(ctx context.Context, cfg Config, jitterFraction float64, fn fu
 
 		// Add jitter
 		jitter := time.Duration(float64(delay) * jitterFraction)
-		jitterAmount := time.Duration(rand.Float64()*float64(jitter*2) - float64(jitter))
+		var jitterAmount time.Duration
+		if jitter > 0 {
+			maxJitter := int64(jitter * 2)
+			if maxJitter > 0 {
+				if n, err := rand.Int(rand.Reader, big.NewInt(maxJitter)); err == nil {
+					jitterAmount = time.Duration(n.Int64()) - jitter
+				}
+			}
+		}
+
 		actualDelay := delay + jitterAmount
 		if actualDelay < 0 {
 			actualDelay = delay
