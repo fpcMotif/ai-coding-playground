@@ -5,12 +5,15 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
 
 	"ffmpeg-go-relay/internal/validator"
 )
+
+var validTranscodeArg = regexp.MustCompile(`^[a-zA-Z0-9_][a-zA-Z0-9_.-]*$`)
 
 // SecurityConfig defines security settings.
 type SecurityConfig struct {
@@ -172,18 +175,30 @@ func (c Config) Validate() error {
 			return errors.New("tls_enabled requires tls_cert and tls_key")
 		}
 	}
-	if c.Transcode.Enabled && strings.TrimSpace(c.Transcode.GOP) != "" {
-		gop := strings.TrimSpace(c.Transcode.GOP)
-		if frames, err := strconv.Atoi(gop); err == nil {
-			if frames <= 0 {
+	if c.Transcode.Enabled {
+		if c.Transcode.VideoCodec != "" && !validTranscodeArg.MatchString(c.Transcode.VideoCodec) {
+			return errors.New("transcode.video_codec contains invalid characters or starts with a hyphen")
+		}
+		if c.Transcode.AudioCodec != "" && !validTranscodeArg.MatchString(c.Transcode.AudioCodec) {
+			return errors.New("transcode.audio_codec contains invalid characters or starts with a hyphen")
+		}
+		if c.Transcode.Preset != "" && !validTranscodeArg.MatchString(c.Transcode.Preset) {
+			return errors.New("transcode.preset contains invalid characters or starts with a hyphen")
+		}
+
+		if strings.TrimSpace(c.Transcode.GOP) != "" {
+			gop := strings.TrimSpace(c.Transcode.GOP)
+			if frames, err := strconv.Atoi(gop); err == nil {
+				if frames <= 0 {
+					return errors.New("transcode.gop must be a positive frame count or duration")
+				}
+			} else if dur, err := time.ParseDuration(gop); err == nil {
+				if dur <= 0 {
+					return errors.New("transcode.gop must be a positive frame count or duration")
+				}
+			} else {
 				return errors.New("transcode.gop must be a positive frame count or duration")
 			}
-		} else if dur, err := time.ParseDuration(gop); err == nil {
-			if dur <= 0 {
-				return errors.New("transcode.gop must be a positive frame count or duration")
-			}
-		} else {
-			return errors.New("transcode.gop must be a positive frame count or duration")
 		}
 	}
 	return nil
