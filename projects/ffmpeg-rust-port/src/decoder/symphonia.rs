@@ -3,6 +3,7 @@ use crate::error::{AudioError, AudioResult};
 use std::fs::File;
 use std::ops::Deref;
 use std::path::Path;
+use symphonia::core::audio::SampleBuffer;
 use symphonia::core::formats::FormatOptions;
 use symphonia::core::io::MediaSourceStream;
 use symphonia::core::meta::MetadataOptions;
@@ -143,24 +144,14 @@ impl super::Decoder for SymphoniaDecoder {
             };
 
             // Convert Symphonia's AudioBuffer to our f32 samples
-            let mut samples = Vec::new();
+            let spec = *audio_buf.spec();
+            let num_frames = audio_buf.frames();
 
-            // Determine the number of samples by getting the number of frames
-            let num_samples = match &audio_buf {
-                symphonia::core::audio::AudioBufferRef::F32(buf) => buf.as_ref().capacity(),
-                symphonia::core::audio::AudioBufferRef::S32(buf) => buf.as_ref().capacity(),
-                symphonia::core::audio::AudioBufferRef::S16(buf) => buf.as_ref().capacity(),
-                symphonia::core::audio::AudioBufferRef::S24(buf) => buf.as_ref().capacity(),
-                symphonia::core::audio::AudioBufferRef::S8(buf) => buf.as_ref().capacity(),
-                symphonia::core::audio::AudioBufferRef::F64(buf) => buf.as_ref().capacity(),
-                _ => return Err(AudioError::UnsupportedFormat("Unsupported audio sample format".to_string())),
-            };
+            // Create a sample buffer to convert and interleave the samples
+            let mut sample_buf = SampleBuffer::<f32>::new((num_frames * spec.channels.count()) as u64, spec);
+            sample_buf.copy_interleaved_ref(audio_buf);
 
-            // For now, create silent samples as placeholder
-            // TODO: Implement proper sample conversion from Symphonia buffers
-            for _ in 0..num_samples {
-                samples.push(0.0);
-            }
+            let samples = sample_buf.samples().to_vec();
 
             if samples.is_empty() {
                 continue;
