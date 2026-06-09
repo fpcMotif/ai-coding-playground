@@ -109,7 +109,7 @@ let frame = AudioFrame::new(samples, 44100, Channels::Mono, 0)?;
 
 // Apply resampling filter
 let mut resampler = Resample::new(44100, 16000, Channels::Mono)?;
-let resampled = resampler.process(&frame)?;
+let resampled = resampler.process(frame)?;
 
 // Encode to WAV
 let mut encoder = WavEncoder::new("output.wav", 16000, Channels::Mono)?;
