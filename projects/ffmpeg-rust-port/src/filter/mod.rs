@@ -1,12 +1,12 @@
 //! Audio filter implementations
 
-pub mod resample;
-pub mod remix;
 pub mod normalize;
+pub mod remix;
+pub mod resample;
 
-pub use resample::Resample;
-pub use remix::Remix;
 pub use normalize::Normalize;
+pub use remix::Remix;
+pub use resample::Resample;
 
 use crate::core::AudioFrame;
 use crate::error::AudioResult;
