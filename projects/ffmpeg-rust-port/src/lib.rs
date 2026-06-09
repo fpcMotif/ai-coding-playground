@@ -33,19 +33,19 @@
 // Declare modules
 /// Core audio types and structures
 pub mod core;
-/// Error types for audio operations
-pub mod error;
 /// Audio decoder implementations
 pub mod decoder;
-/// Audio filter implementations
-pub mod filter;
 /// Audio encoder implementations
 pub mod encoder;
+/// Error types for audio operations
+pub mod error;
+/// Audio filter implementations
+pub mod filter;
 /// Audio processing pipelines
 pub mod processor;
 
 // Export public types
-pub use core::{AudioFrame, AudioMetadata, Channels, BitDepth};
+pub use core::{AudioFrame, AudioMetadata, BitDepth, Channels};
 pub use error::{AudioError, AudioResult};
 
 /// Library version

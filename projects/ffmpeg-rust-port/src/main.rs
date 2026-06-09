@@ -148,7 +148,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             output,
             duration,
         }) => {
-            println!("Segment command: {:?} -> {:?} ({} sec chunks)", input, output, duration);
+            println!(
+                "Segment command: {:?} -> {:?} ({} sec chunks)",
+                input, output, duration
+            );
             println!("Not yet implemented - Phase 5");
         }
         Some(Commands::Transcode {
@@ -167,7 +170,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             println!("Not yet implemented - Phases 2-4");
         }
         None => {
-            println!("FFmpeg-RS {} - Pure Rust Audio Processing", ffmpeg_rs::VERSION);
+            println!(
+                "FFmpeg-RS {} - Pure Rust Audio Processing",
+                ffmpeg_rs::VERSION
+            );
             println!("\n=== IMPLEMENTATION STATUS ===");
             println!("✓ Phase 1: Core audio types and error handling");
             println!("✓ Phase 2: Audio decoder framework (Symphonia integration)");
@@ -185,7 +191,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             println!("  • Encoder trait: Multiple output formats");
             println!("  • Decoder trait: Multiple input formats");
             println!("\n=== FEATURES ===");
-            println!("Filters: Resample (44.1kHz→16kHz), Remix (stereo↔mono), Normalize (peak/loudness)");
+            println!(
+                "Filters: Resample (44.1kHz→16kHz), Remix (stereo↔mono), Normalize (peak/loudness)"
+            );
             println!("Processors: Audio segmentation by duration");
             println!("Encoders: WAV (32-bit float)");
             println!("\n=== USAGE ===");

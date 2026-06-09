@@ -18,12 +18,10 @@ impl Remix {
 
     /// Remix stereo to mono by averaging channels
     fn stereo_to_mono(input: &[f32]) -> Vec<f32> {
-        let mut output = Vec::new();
-        for i in (0..input.len()).step_by(2) {
-            if i + 1 < input.len() {
-                let avg = (input[i] + input[i + 1]) / 2.0;
-                output.push(avg);
-            }
+        let mut output = Vec::with_capacity(input.len() / 2);
+        for chunk in input.chunks_exact(2) {
+            let avg = (chunk[0] + chunk[1]) / 2.0;
+            output.push(avg);
         }
         output
     }
@@ -102,7 +100,7 @@ impl super::Filter for Remix {
                     "Remix from {} to {} not yet supported",
                     self.input_channels.name(),
                     self.output_channels.name()
-                )))
+                )));
             }
         };
 
